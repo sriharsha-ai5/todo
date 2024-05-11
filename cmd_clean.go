@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/gonuts/commander"
+	fp "github.com/repeale/fp-go"
 )
 
 func makeCmdClean(filename string) *commander.Command {
@@ -16,39 +14,12 @@ func makeCmdClean(filename string) *commander.Command {
 			cmd.Usage()
 			return nil
 		}
-		w, err := os.Create(filename + "_")
-		if err != nil {
-			return err
-		}
-		defer w.Close()
-		f, err := os.Open(filename)
-		if err != nil {
-			return err
-		}
-		br := bufio.NewReader(f)
-		for {
-			b, _, err := br.ReadLine()
-			if err != nil {
-				if err != io.EOF {
-					return err
-				}
-				break
-			}
-			line := string(b)
-			if !strings.HasPrefix(line, "-") {
-				_, err = fmt.Fprintf(w, "%s\n", line)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		f.Close()
-		w.Close()
-		err = os.Remove(filename)
-		if err != nil {
-			return err
-		}
-		return os.Rename(filename+"_", filename)
+		byt, err := os.ReadFile(filename)
+		strsplt := strings.Split(string(byt), "\n")
+		err = os.WriteFile(filename, []byte(strings.Join(fp.Filter(func(v string) bool {
+			return !strings.HasPrefix(v, "-")
+		})(strsplt), "\n")), 0644)
+		return err
 	}
 
 	return &commander.Command{
