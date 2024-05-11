@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"github.com/gonuts/commander"
+	fp "github.com/repeale/fp-go"
 )
 
 func makeCmdSort(filename string) *commander.Command {
@@ -17,48 +14,14 @@ func makeCmdSort(filename string) *commander.Command {
 			cmd.Usage()
 			return nil
 		}
-		var bottom bytes.Buffer
-		w, err := os.Create(filename + "_")
-		if err != nil {
-			return err
-		}
-		defer w.Close()
-		f, err := os.Open(filename)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		br := bufio.NewReader(f)
-		for {
-			b, _, err := br.ReadLine()
-			if err != nil {
-				if err != io.EOF {
-					return err
-				}
-				break
-			}
-			line := string(b)
-			if !strings.HasPrefix(line, "-") {
-				_, err = fmt.Fprintf(&bottom, "%s\n", line)
-				if err != nil {
-					return err
-				}
-			} else {
-				_, err = fmt.Fprintf(w, "%s\n", line)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		_, err = bottom.WriteTo(w)
-		if err != nil {
-			return err
-		}
-		err = os.Remove(filename)
-		if err != nil {
-			return err
-		}
-		return os.Rename(filename+"_", filename)
+		byt, err := os.ReadFile(filename)
+		strsplt := strings.Split(string(byt), "\n")
+		err = os.WriteFile(filename, []byte(strings.Join(append(fp.Filter(func(v string) bool {
+			return strings.HasPrefix(v, "-")
+		})(strsplt), fp.Filter(func(v string) bool {
+			return !strings.HasPrefix(v, "-")
+		})(strsplt)...), "\n")), 0644)
+		return err
 	}
 
 	return &commander.Command{

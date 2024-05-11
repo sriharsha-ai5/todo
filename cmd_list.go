@@ -25,7 +25,6 @@ func makeCmdList(filename string) *commander.Command {
 		}
 		sstrspl := strings.Split(string(byt), "\n")
 		sstrspl = sstrspl[:len(sstrspl)-1]
-		fmt.Println(sstrspl)
 		for i, v := range sstrspl {
 			n := i + 1
 			line := v
