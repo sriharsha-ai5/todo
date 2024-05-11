@@ -14,7 +14,7 @@ const (
 
 func main() {
 	filename := ""
-	existCurTodo := false
+	existCurTodo := true
 	curDir, err := os.Getwd()
 	if err == nil {
 		filename = filepath.Join(curDir, todoFilename)
