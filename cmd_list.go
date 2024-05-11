@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -19,22 +17,18 @@ const (
 func makeCmdList(filename string) *commander.Command {
 	cmdList := func(cmd *commander.Command, args []string) error {
 		nflag := cmd.Flag.Lookup("n").Value.Get().(bool)
-		f, err := os.Open(filename)
+		byt, err := os.ReadFile(filename)
 		if err != nil {
+			fmt.Println("Error in reading whole file at once")
 			return err
+
 		}
-		defer f.Close()
-		br := bufio.NewReader(f)
-		n := 1
-		for {
-			b, _, err := br.ReadLine()
-			if err != nil {
-				if err != io.EOF {
-					return err
-				}
-				break
-			}
-			line := string(b)
+		sstrspl := strings.Split(string(byt), "\n")
+		sstrspl = sstrspl[:len(sstrspl)-1]
+		fmt.Println(sstrspl)
+		for i, v := range sstrspl {
+			n := i + 1
+			line := v
 			if strings.HasPrefix(line, "-") {
 				if !nflag {
 					fmt.Printf("%s %03d: %s\n", doneMark2, n, strings.TrimSpace(line[1:]))
@@ -42,7 +36,6 @@ func makeCmdList(filename string) *commander.Command {
 			} else {
 				fmt.Printf("%s %03d: %s\n", doneMark1, n, strings.TrimSpace(line))
 			}
-			n++
 
 		}
 		return nil
